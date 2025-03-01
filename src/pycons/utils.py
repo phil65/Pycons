@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from io import TextIOWrapper
+import os
 from pathlib import Path
 import re
 from typing import Any
@@ -12,6 +13,7 @@ import httpx
 
 _CACHE_TIMEOUT = 30 * 24 * 60 * 60
 _CACHE_DIR = Path(user_cache_dir("textual_icons", "Pycons"))
+TOKEN = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
 
 
 async def fetch_url(url: str, use_cache: bool = True) -> bytes:
@@ -33,8 +35,12 @@ async def fetch_url(url: str, use_cache: bool = True) -> bytes:
             storage=storage,
             controller=controller,
         )
+    headers = {}
+    if TOKEN and ("github.com" in url or "githubusercontent.com" in url):
+        headers["Authorization"] = f"token {TOKEN}"
+
     async with httpx.AsyncClient(transport=transport) as client:  # type: ignore[arg-type]
-        response = await client.get(url, follow_redirects=True)
+        response = await client.get(url, follow_redirects=True, headers=headers)
         response.raise_for_status()
         return response.content
 
