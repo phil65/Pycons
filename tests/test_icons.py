@@ -7,11 +7,10 @@ from pycons.registry import FontRegistry
 
 
 @pytest.mark.asyncio
-async def test_all_providers():
-    """Test fetching one icon from each provider."""
+async def test_standard_provider_format():
+    """Test fetching icons using standard provider format."""
     registry = FontRegistry()
 
-    # Test standard provider format
     test_cases = [
         ("fa.heart", "Font Awesome Regular"),
         ("fas.heart", "Font Awesome Solid"),
@@ -27,19 +26,14 @@ async def test_all_providers():
     ]
 
     for icon_id, provider_name in test_cases:
-        print(f"Testing {provider_name} ({icon_id})...")
-        try:
-            icon = await registry.get_icon(icon_id)
-            print(f"  ✓ Success: {icon.character} ({hex(ord(icon.character))})")
+        icon = await registry.get_icon(icon_id)
+        assert icon.character, f"{provider_name} icon has no character"
+        assert icon.ttf_path.exists(), f"{provider_name} font file does not exist"
 
-            # Verify font file exists
-            assert icon.ttf_path.exists(), f"Font file does not exist: {icon.ttf_path}"
 
-        except Exception as e:
-            print(f"  ✗ Failed: {e}")
-            raise
-
-    # Test Iconify format
+@pytest.mark.asyncio
+async def test_iconify_format():
+    """Test fetching icons using Iconify format."""
     iconify_test_cases = [
         ("mdi:home", "Community Material Design"),
         ("fa6-regular:heart", "Font Awesome Regular"),
@@ -55,17 +49,9 @@ async def test_all_providers():
     ]
 
     for iconify_id, provider_name in iconify_test_cases:
-        print(f"Testing Iconify format for {provider_name} ({iconify_id})...")
-        try:
-            icon = await get_icon_from_iconify_id(iconify_id)
-            print(f"  ✓ Success: {icon.character} ({hex(ord(icon.character))})")
-
-            # Verify font file exists
-            assert icon.ttf_path.exists(), f"Font file does not exist: {icon.ttf_path}"
-
-        except Exception as e:
-            print(f"  ✗ Failed: {e}")
-            raise
+        icon = await get_icon_from_iconify_id(iconify_id)
+        assert icon.character, f"{provider_name} icon has no character"
+        assert icon.ttf_path.exists(), f"{provider_name} font file does not exist"
 
 
 if __name__ == "__main__":
