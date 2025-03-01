@@ -11,12 +11,12 @@ import httpx
 
 
 _CACHE_TIMEOUT = 30 * 24 * 60 * 60
-_CACHE_DIR = Path(user_cache_dir("textual_icons", "Textualize"))
+_CACHE_DIR = Path(user_cache_dir("textual_icons", "Pycons"))
 
 
-async def fetch_url(url: str, disable_cache: bool = False) -> bytes:
+async def fetch_url(url: str, use_cache: bool = True) -> bytes:
     """Fetch data from URL using httpx with optional hishel caching (on by default)."""
-    if disable_cache:
+    if not use_cache:
         transport = None
     else:
         storage = hishel.AsyncFileStorage(
@@ -56,7 +56,7 @@ def extract_unicode_from_css(css_data: bytes, pattern: str) -> dict[str, str]:
 
 
 try:
-    import orjson as _orjson
+    import orjson as _orjson  # type: ignore
 
     def load_json(data: str | bytes | TextIOWrapper) -> Any:
         """Load JSON data using orjson if available."""

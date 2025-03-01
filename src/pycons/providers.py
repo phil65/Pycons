@@ -5,11 +5,7 @@ from __future__ import annotations
 from typing import ClassVar
 
 from pycons.base import FontProvider
-from pycons.utils import (
-    extract_unicode_from_css,
-    fetch_url,
-    load_json,
-)
+from pycons.utils import extract_unicode_from_css, fetch_url, load_json
 
 
 class FontAwesomeBase(FontProvider):
@@ -19,7 +15,7 @@ class FontAwesomeBase(FontProvider):
     BASE_URL = "https://raw.githubusercontent.com/FortAwesome/Font-Awesome"
 
     async def get_latest_version(self) -> str:
-        data = await fetch_url(self.GITHUB_API)
+        data = await fetch_url(self.GITHUB_API, use_cache=self.use_cache)
         release_info = load_json(data)
         return release_info["tag_name"].lstrip("v")
 
@@ -99,7 +95,7 @@ class MaterialDesignProvider(FontProvider):
 
     async def get_latest_version(self) -> str:
         """Get latest version from GitHub tags."""
-        data = await fetch_url(self.VERSION_URL)
+        data = await fetch_url(self.VERSION_URL, use_cache=self.use_cache)
         tags = load_json(data)
         # Tags API returns list of tags, first one is most recent
         return tags[0]["name"].lstrip("v")
@@ -161,7 +157,7 @@ class CodiconsProvider(FontProvider):
     VERSION_URL = "https://api.github.com/repos/microsoft/vscode-codicons/releases/latest"
 
     async def get_latest_version(self) -> str:
-        data = await fetch_url(self.VERSION_URL)
+        data = await fetch_url(self.VERSION_URL, use_cache=self.use_cache)
         release_info = load_json(data)
         return release_info["tag_name"].lstrip("v")
 
@@ -190,7 +186,7 @@ class PhosphorProvider(FontProvider):
         return (f"{base}/src/regular/Phosphor.ttf", f"{base}/src/Phosphor.json")
 
     async def get_latest_version(self) -> str:
-        # data = await fetch_url(self.VERSION_URL)
+        # data = await fetch_url(self.VERSION_URL, use_cache=self.use_cache)
         # tags = load_json(data)
         # # Tags endpoint returns a list, first one is most recent
         # return tags[0]["name"].lstrip("v")
@@ -226,7 +222,7 @@ class RemixProvider(FontProvider):
         return (f"{base}/fonts/remixicon.ttf", f"{base}/fonts/remixicon.css")
 
     async def get_latest_version(self) -> str:
-        # data = await fetch_url(self.VERSION_URL)
+        # data = await fetch_url(self.VERSION_URL, use_cache=self.use_cache)
         # tags = load_json(data)
         # # Tags endpoint returns a list, first one is most recent
         # return tags[0]["name"].lstrip("v")

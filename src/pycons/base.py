@@ -3,14 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import ClassVar
-
-from appdirs import user_cache_dir
-
-
-_CACHE_TIMEOUT = 30 * 24 * 60 * 60
-_CACHE_DIR = Path(user_cache_dir("textual_icons", "Textualize"))
 
 
 class FontProvider(ABC):
@@ -20,6 +13,10 @@ class FontProvider(ABC):
     NAME: ClassVar[str]
     PREFIX: ClassVar[str]
     DISPLAY_NAME: ClassVar[str]
+
+    def __init__(self, use_cache: bool = True) -> None:
+        super().__init__()
+        self.use_cache = use_cache
 
     @abstractmethod
     async def get_latest_version(self) -> str:
