@@ -235,7 +235,7 @@ class ElusiveIconsProvider(FontProvider):
             data = await fetch_url(self.VERSION_URL, use_cache=self.use_cache)
             tags = load_json(data)
             return tags[0]["name"].lstrip("v")
-        except Exception:
+        except Exception:  # noqa: BLE001
             # Fall back to master branch if API fails
             return "master"
 
@@ -287,13 +287,7 @@ class BaseGoogleMaterialSymbolsProvider(FontProvider):
 
     async def get_latest_version(self) -> str:
         """Get latest version from GitHub releases."""
-        try:
-            data = await fetch_url(self.VERSION_URL, use_cache=self.use_cache)
-            release_info = load_json(data)
-            return release_info["tag_name"]
-        except Exception:
-            # Fall back to a specific version if API fails
-            return "master"
+        return "master"
 
     def process_mapping(self, mapping_data: bytes) -> dict[str, str]:
         """Process the .codepoints file format."""
@@ -320,10 +314,11 @@ class GoogleMaterialSymbolsOutlinedProvider(BaseGoogleMaterialSymbolsProvider):
     DISPLAY_NAME: ClassVar[str] = "Google Material Symbols Outlined"
 
     def get_download_urls(self, version: str) -> tuple[str, str]:
-        base_url = f"{self.BASE_URL}/{version}/variablefont"
+        # Using the exact URL format you provided
+        base_url = "https://github.com/google/material-design-icons/raw/refs/heads/master/variablefont"
         return (
-            f"{base_url}/MaterialSymbolsOutlined[FILL,GRAD,opsz,wght].ttf",
-            f"{base_url}/MaterialSymbolsOutlined[FILL,GRAD,opsz,wght].codepoints",
+            f"{base_url}/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.ttf",
+            f"{base_url}/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.codepoints",
         )
 
 
@@ -335,10 +330,10 @@ class GoogleMaterialSymbolsRoundedProvider(BaseGoogleMaterialSymbolsProvider):
     DISPLAY_NAME: ClassVar[str] = "Google Material Symbols Rounded"
 
     def get_download_urls(self, version: str) -> tuple[str, str]:
-        base_url = f"{self.BASE_URL}/{version}/variablefont"
+        base_url = "https://github.com/google/material-design-icons/raw/refs/heads/master/variablefont"
         return (
-            f"{base_url}/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].ttf",
-            f"{base_url}/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].codepoints",
+            f"{base_url}/MaterialSymbolsRounded%5BFILL,GRAD,opsz,wght%5D.ttf",
+            f"{base_url}/MaterialSymbolsRounded%5BFILL,GRAD,opsz,wght%5D.codepoints",
         )
 
 
@@ -350,10 +345,10 @@ class GoogleMaterialSymbolsSharpProvider(BaseGoogleMaterialSymbolsProvider):
     DISPLAY_NAME: ClassVar[str] = "Google Material Symbols Sharp"
 
     def get_download_urls(self, version: str) -> tuple[str, str]:
-        base_url = f"{self.BASE_URL}/{version}/variablefont"
+        base_url = "https://github.com/google/material-design-icons/raw/refs/heads/master/variablefont"
         return (
-            f"{base_url}/MaterialSymbolsSharp[FILL,GRAD,opsz,wght].ttf",
-            f"{base_url}/MaterialSymbolsSharp[FILL,GRAD,opsz,wght].codepoints",
+            f"{base_url}/MaterialSymbolsSharp%5BFILL,GRAD,opsz,wght%5D.ttf",
+            f"{base_url}/MaterialSymbolsSharp%5BFILL,GRAD,opsz,wght%5D.codepoints",
         )
 
 
