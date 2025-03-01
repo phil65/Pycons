@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import ClassVar
 
 from pycons.base import FontProvider
@@ -80,7 +81,7 @@ class FontAwesomeBrandsProvider(FontAwesomeBase):
         }
 
 
-class MaterialDesignProvider(FontProvider):
+class CommunityMaterialDesignProvider(FontProvider):
     """Provider for Material Design icons."""
 
     NAME: ClassVar[str] = "material"
@@ -109,40 +110,24 @@ class MaterialDesignProvider(FontProvider):
     def process_mapping(self, mapping_data: bytes) -> dict[str, str]:
         """Process Material Design Icons CSS with a custom parser."""
         content = mapping_data.decode("utf-8")
-
-        # Print a sample to understand the format
-        print(f"CSS sample: {content[:500]}")
-
-        # Custom parser for Material Design Icons CSS
         icons = {}
 
-        # Look for patterns like: .mdi-access-point:before { content: "\F0003"; }
+        # Parse the CSS using the correct double-colon syntax
+        current_icon = None
         for line in content.splitlines():
-            # First find the selector line
-            if ".mdi-" in line and ":before" in line:
+            if ".mdi-" in line and "::before" in line:
                 # Extract the icon name
-                icon_name = line.split(".mdi-")[1].split(":before")[0]
-
-                # Look ahead for the content line with Unicode value
-                for i in range(3):  # Check next few lines
-                    if i + 1 >= len(content.splitlines()):
-                        break
-                    content_line = content.splitlines()[
-                        content.splitlines().index(line) + i + 1
-                    ]
-                    if "content:" in content_line and "\\F" in content_line.upper():
-                        # Extract the Unicode value
-                        unicode_value = (
-                            content_line.split("content:")[1]
-                            .split('"\\')[1]
-                            .split('"')[0]
-                        )
-                        icons[icon_name] = f"0x{unicode_value.lower()}"
-                        break
-
-        print(f"Extracted {len(icons)} icons")
-        if icons:
-            print(f"First 3 icons: {list(icons.items())[:3]}")
+                current_icon = line.split(".mdi-")[1].split("::before")[0]
+            elif current_icon and "content:" in line:
+                # Extract the Unicode value - format is: content: "\F01C9";
+                if "\\F" in line.upper() or "\\f" in line:
+                    unicode_value = (
+                        line.split("content:")[1]
+                        .split('"\\')[1]  # Get part after the backslash
+                        .split('"')[0]  # Get part before the closing quote
+                    )
+                    icons[current_icon] = f"0x{unicode_value.lower()}"
+                current_icon = None
 
         return icons
 
@@ -232,12 +217,156 @@ class RemixProvider(FontProvider):
         return extract_unicode_from_css(mapping_data, self.CSS_PATTERN)
 
 
+class ElusiveIconsProvider(FontProvider):
+    """Provider for Elusive Icons."""
+
+    NAME: ClassVar[str] = "elusive"
+    PREFIX: ClassVar[str] = "el"
+    DISPLAY_NAME: ClassVar[str] = "Elusive Icons"
+
+    # No need for version URL as we're using a static version
+    VERSION_URL = "https://api.github.com/repos/dovy/elusive-icons/tags"
+    BASE_URL = "https://raw.githubusercontent.com/dovy/elusive-icons/master"
+    CSS_PATTERN = r'\.el-([^:]+):before\s*{\s*content:\s*"\\([^"]+)"\s*;\s*}'
+
+    async def get_latest_version(self) -> str:
+        """Get latest version, or use 'master' if API fails."""
+        try:
+            data = await fetch_url(self.VERSION_URL, use_cache=self.use_cache)
+            tags = load_json(data)
+            return tags[0]["name"].lstrip("v")
+        except Exception:
+            # Fall back to master branch if API fails
+            return "master"
+
+    def get_download_urls(self, version: str) -> tuple[str, str]:
+        """Get URLs for font file and CSS."""
+        return (
+            "https://github.com/dovy/elusive-icons/raw/master/fonts/elusiveicons-webfont.ttf",
+            f"{self.BASE_URL}/css/elusive-icons.css",
+        )
+
+    def process_mapping(self, mapping_data: bytes) -> dict[str, str]:
+        """Process Elusive Icons CSS to extract icon names and unicode points."""
+        content = mapping_data.decode("utf-8")
+        icons = {}
+
+        # Parse CSS looking for patterns like: .el-home:before { content: "\f189"; }
+        for line in content.splitlines():
+            if ".el-" in line and ":before" in line:
+                # Extract icon name
+                icon_name = line.split(".el-")[1].split(":before")[0]
+
+                # Look for the content property in the same or next line
+                content_search = line
+                if "{" in line and "content:" not in line:
+                    # Content might be on next line
+                    idx = content.find(line) + len(line)
+                    next_brace = content.find("}", idx)
+                    if next_brace > idx:
+                        content_search = content[idx:next_brace]
+
+                # Extract unicode value if available
+                if "content:" in content_search:
+                    # Format is: content: "\f189";
+                    match = re.search(r'content:\s*"\\([^"]+)"', content_search)
+                    if match:
+                        unicode_value = match.group(1)
+                        icons[icon_name] = f"0x{unicode_value.lower()}"
+
+        return icons
+
+
+class BaseGoogleMaterialSymbolsProvider(FontProvider):
+    """Base provider for Google's official Material Symbols."""
+
+    VERSION_URL = (
+        "https://api.github.com/repos/google/material-design-icons/releases/latest"
+    )
+    BASE_URL = "https://github.com/google/material-design-icons/raw"
+
+    async def get_latest_version(self) -> str:
+        """Get latest version from GitHub releases."""
+        try:
+            data = await fetch_url(self.VERSION_URL, use_cache=self.use_cache)
+            release_info = load_json(data)
+            return release_info["tag_name"]
+        except Exception:
+            # Fall back to a specific version if API fails
+            return "master"
+
+    def process_mapping(self, mapping_data: bytes) -> dict[str, str]:
+        """Process the .codepoints file format."""
+        content = mapping_data.decode("utf-8")
+        icons = {}
+
+        # Parse the codepoints file - format is name[space]codepoint
+        for line in content.splitlines():
+            if line.strip() and " " in line:
+                name, codepoint = line.strip().split(" ", 1)
+                # Convert name to kebab-case if it contains underscores
+                name = name.replace("_", "-").lower()
+                # Convert codepoint to 0xXXXX format
+                icons[name] = f"0x{codepoint}"
+
+        return icons
+
+
+class GoogleMaterialSymbolsOutlinedProvider(BaseGoogleMaterialSymbolsProvider):
+    """Provider for Google Material Symbols Outlined style."""
+
+    NAME: ClassVar[str] = "material-symbols-outlined"
+    PREFIX: ClassVar[str] = "mso"
+    DISPLAY_NAME: ClassVar[str] = "Google Material Symbols Outlined"
+
+    def get_download_urls(self, version: str) -> tuple[str, str]:
+        base_url = f"{self.BASE_URL}/{version}/variablefont"
+        return (
+            f"{base_url}/MaterialSymbolsOutlined[FILL,GRAD,opsz,wght].ttf",
+            f"{base_url}/MaterialSymbolsOutlined[FILL,GRAD,opsz,wght].codepoints",
+        )
+
+
+class GoogleMaterialSymbolsRoundedProvider(BaseGoogleMaterialSymbolsProvider):
+    """Provider for Google Material Symbols Rounded style."""
+
+    NAME: ClassVar[str] = "material-symbols-rounded"
+    PREFIX: ClassVar[str] = "msr"
+    DISPLAY_NAME: ClassVar[str] = "Google Material Symbols Rounded"
+
+    def get_download_urls(self, version: str) -> tuple[str, str]:
+        base_url = f"{self.BASE_URL}/{version}/variablefont"
+        return (
+            f"{base_url}/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].ttf",
+            f"{base_url}/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].codepoints",
+        )
+
+
+class GoogleMaterialSymbolsSharpProvider(BaseGoogleMaterialSymbolsProvider):
+    """Provider for Google Material Symbols Sharp style."""
+
+    NAME: ClassVar[str] = "material-symbols-sharp"
+    PREFIX: ClassVar[str] = "mss"
+    DISPLAY_NAME: ClassVar[str] = "Google Material Symbols Sharp"
+
+    def get_download_urls(self, version: str) -> tuple[str, str]:
+        base_url = f"{self.BASE_URL}/{version}/variablefont"
+        return (
+            f"{base_url}/MaterialSymbolsSharp[FILL,GRAD,opsz,wght].ttf",
+            f"{base_url}/MaterialSymbolsSharp[FILL,GRAD,opsz,wght].codepoints",
+        )
+
+
 PROVIDERS = {
     FontAwesomeRegularProvider.NAME: FontAwesomeRegularProvider(),
     FontAwesomeSolidProvider.NAME: FontAwesomeSolidProvider(),
     FontAwesomeBrandsProvider.NAME: FontAwesomeBrandsProvider(),
-    MaterialDesignProvider.NAME: MaterialDesignProvider(),
+    CommunityMaterialDesignProvider.NAME: CommunityMaterialDesignProvider(),
+    GoogleMaterialSymbolsOutlinedProvider.NAME: GoogleMaterialSymbolsOutlinedProvider(),
+    GoogleMaterialSymbolsRoundedProvider.NAME: GoogleMaterialSymbolsRoundedProvider(),
+    GoogleMaterialSymbolsSharpProvider.NAME: GoogleMaterialSymbolsSharpProvider(),
     CodiconsProvider.NAME: CodiconsProvider(),
     PhosphorProvider.NAME: PhosphorProvider(),
     RemixProvider.NAME: RemixProvider(),
+    ElusiveIconsProvider.NAME: ElusiveIconsProvider(),
 }
