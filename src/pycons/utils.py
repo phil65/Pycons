@@ -14,22 +14,25 @@ _CACHE_TIMEOUT = 30 * 24 * 60 * 60
 _CACHE_DIR = Path(user_cache_dir("textual_icons", "Textualize"))
 
 
-async def fetch_url(url: str) -> bytes:
-    """Fetch data from URL using httpx with hishel caching."""
-    storage = hishel.AsyncFileStorage(
-        base_path=_CACHE_DIR,
-        ttl=_CACHE_TIMEOUT,
-    )
-    controller = hishel.Controller(
-        cacheable_methods=["GET"],
-        cacheable_status_codes=[200],
-        allow_stale=True,
-    )
-    transport = hishel.AsyncCacheTransport(
-        transport=httpx.AsyncHTTPTransport(),
-        storage=storage,
-        controller=controller,
-    )
+async def fetch_url(url: str, disable_cache: bool = False) -> bytes:
+    """Fetch data from URL using httpx with optional hishel caching (on by default)."""
+    if disable_cache:
+        transport = None
+    else:
+        storage = hishel.AsyncFileStorage(
+            base_path=_CACHE_DIR,
+            ttl=_CACHE_TIMEOUT,
+        )
+        controller = hishel.Controller(
+            cacheable_methods=["GET"],
+            cacheable_status_codes=[200],
+            allow_stale=True,
+        )
+        transport = hishel.AsyncCacheTransport(
+            transport=httpx.AsyncHTTPTransport(),
+            storage=storage,
+            controller=controller,
+        )
     async with httpx.AsyncClient(transport=transport) as client:  # type: ignore[arg-type]
         response = await client.get(url, follow_redirects=True)
         response.raise_for_status()
