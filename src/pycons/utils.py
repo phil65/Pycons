@@ -12,7 +12,7 @@ import httpx
 
 
 _CACHE_TIMEOUT = 30 * 24 * 60 * 60
-_CACHE_DIR = Path(user_cache_dir("textual_icons", "Pycons"))
+_CACHE_DIR = Path(user_cache_dir("Pycons", False))
 TOKEN = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
 
 
