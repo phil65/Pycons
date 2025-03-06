@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import ClassVar
 
-from pycons.base import FontProvider
+from pycons.font_providers.base import FontProvider
 from pycons.utils import extract_unicode_from_css, fetch_url, load_json
 
 

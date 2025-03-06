@@ -50,7 +50,7 @@ def extract_unicode_from_css(css_data: bytes, pattern: str) -> dict[str, str]:
     content = css_data.decode("utf-8")
     matches = re.findall(pattern, content, re.MULTILINE)
 
-    charmap = {}
+    charmap: dict[str, str] = {}
     for name, key in matches:
         # Convert CSS unicode escapes to hex
         key = key.replace("\\F", "0xf").lower()

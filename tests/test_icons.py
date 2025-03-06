@@ -2,8 +2,8 @@
 
 import pytest
 
+from pycons.font_providers.registry import FontRegistry
 from pycons.functional import get_icon_from_iconify_id
-from pycons.registry import FontRegistry
 
 
 @pytest.mark.asyncio

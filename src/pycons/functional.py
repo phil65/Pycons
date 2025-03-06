@@ -21,7 +21,7 @@ async def get_icon(icon_name: str) -> Icon:
     Returns:
         Tuple of (unicode_character, font_family)
     """
-    from pycons.registry import FontRegistry
+    from pycons.font_providers.registry import FontRegistry
 
     registry = FontRegistry()
     return await registry.get_icon(icon_name)
@@ -45,7 +45,7 @@ async def get_icon_from_iconify_id(iconify_id: str) -> Icon:
     Raises:
         ValueError: If the icon identifier is invalid or the icon is not found
     """
-    from pycons.registry import FontRegistry
+    from pycons.font_providers.registry import FontRegistry
 
     # Parse the Iconify identifier
     if ":" not in iconify_id:

@@ -4,15 +4,15 @@ import asyncio
 import json
 from typing import TYPE_CHECKING
 
-from pycons.models import FontInfo, Icon
-from pycons.providers import PROVIDERS
+from pycons.font_providers.models import FontInfo, Icon
+from pycons.font_providers.providers import PROVIDERS
 from pycons.utils import _CACHE_DIR, fetch_url, load_json
 
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from pycons.base import FontProvider
+    from pycons.font_providers.base import FontProvider
 
 
 class FontRegistry:
