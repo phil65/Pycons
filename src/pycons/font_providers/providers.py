@@ -5,8 +5,10 @@ from __future__ import annotations
 import re
 from typing import ClassVar
 
+from anyenv import load_json
+
 from pycons.font_providers.base import FontProvider
-from pycons.utils import extract_unicode_from_css, fetch_url, load_json
+from pycons.utils import extract_unicode_from_css, fetch_url
 
 
 class FontAwesomeBase(FontProvider):

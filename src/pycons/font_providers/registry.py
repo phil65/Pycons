@@ -4,9 +4,11 @@ import asyncio
 import json
 from typing import TYPE_CHECKING
 
+from anyenv import load_json
+
 from pycons.font_providers.models import FontInfo, Icon
 from pycons.font_providers.providers import PROVIDERS
-from pycons.utils import _CACHE_DIR, fetch_url, load_json
+from pycons.utils import _CACHE_DIR, fetch_url
 
 
 if TYPE_CHECKING:

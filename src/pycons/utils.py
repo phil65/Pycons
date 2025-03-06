@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from io import TextIOWrapper
 import os
 from pathlib import Path
 import re
-from typing import Any
 
 from appdirs import user_cache_dir
 import hishel
@@ -59,26 +57,3 @@ def extract_unicode_from_css(css_data: bytes, pattern: str) -> dict[str, str]:
         charmap[name] = key
 
     return charmap
-
-
-try:
-    import orjson as _orjson  # type: ignore
-
-    def load_json(data: str | bytes | TextIOWrapper) -> Any:
-        """Load JSON data using orjson if available."""
-        if isinstance(data, TextIOWrapper):
-            data = data.read()
-        if isinstance(data, str):
-            data = data.encode()
-        return _orjson.loads(data)
-
-except ImportError:
-    import json as _stdlib_json
-
-    def load_json(data: str | bytes | TextIOWrapper) -> Any:
-        """Load JSON data using stdlib json."""
-        if isinstance(data, TextIOWrapper):
-            data = data.read()
-        if isinstance(data, bytes):
-            data = data.decode()
-        return _stdlib_json.loads(data)
