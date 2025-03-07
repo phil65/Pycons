@@ -4,9 +4,8 @@ import os
 from pathlib import Path
 import re
 
+import anyenv
 from appdirs import user_cache_dir
-import hishel
-import httpx
 
 
 _CACHE_TIMEOUT = 30 * 24 * 60 * 60
@@ -16,31 +15,10 @@ TOKEN = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
 
 async def fetch_url(url: str, use_cache: bool = True) -> bytes:
     """Fetch data from URL using httpx with optional hishel caching (on by default)."""
-    if not use_cache:
-        transport = None
-    else:
-        storage = hishel.AsyncFileStorage(
-            base_path=_CACHE_DIR,
-            ttl=_CACHE_TIMEOUT,
-        )
-        controller = hishel.Controller(
-            cacheable_methods=["GET"],
-            cacheable_status_codes=[200],
-            allow_stale=True,
-        )
-        transport = hishel.AsyncCacheTransport(
-            transport=httpx.AsyncHTTPTransport(),
-            storage=storage,
-            controller=controller,
-        )
     headers = {}
     if TOKEN and ("github.com" in url or "githubusercontent.com" in url):
         headers["Authorization"] = f"token {TOKEN}"
-
-    async with httpx.AsyncClient(transport=transport) as client:  # type: ignore[arg-type]
-        response = await client.get(url, follow_redirects=True, headers=headers)
-        response.raise_for_status()
-        return response.content
+    return await anyenv.get_bytes(url, headers=headers, cache=use_cache, cache_ttl="1w")
 
 
 def extract_unicode_from_css(css_data: bytes, pattern: str) -> dict[str, str]:
