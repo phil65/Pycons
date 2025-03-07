@@ -2,37 +2,31 @@
 
 from __future__ import annotations
 
-import functools
 import re
 from typing import TYPE_CHECKING, Literal, overload
 import warnings
 
-import httpx
+import anyenv
+from anyenv.download.functional import get_json_sync
+
+from pycons.iconify.iconify_types import (
+    APIv2CollectionResponse,
+    APIv2SearchResponse,
+    APIv3KeywordsResponse,
+    IconifyInfo,
+    IconifyJSON,
+)
 
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from .iconify_types import (
-        APIv2CollectionResponse,
-        APIv2SearchResponse,
-        APIv3KeywordsResponse,
-        Flip,
-        IconifyInfo,
-        IconifyJSON,
-        Rotation,
-    )
+    from pycons.iconify.iconify_types import Flip, Rotation
+
+StylesheetFormat = Literal["expanded", "compact", "compressed"]
 
 
 ROOT = "https://api.iconify.design"
-
-
-@functools.cache
-def _client() -> httpx.Client:
-    """Return an httpx client."""
-    client = httpx.Client()
-    client.headers.update({"User-Agent": "pycons"})
-    return client
 
 
 def collections(*prefixes: str) -> dict[str, IconifyInfo]:
@@ -50,9 +44,14 @@ def collections(*prefixes: str) -> dict[str, IconifyInfo]:
         end with "-", such as "mdi-" matches "mdi-light".
     """
     query_params = {"prefixes": ",".join(prefixes)}
-    resp = _client().get(f"{ROOT}/collections", params=query_params, timeout=2)
-    resp.raise_for_status()
-    return resp.json()  # type: ignore
+    return anyenv.get_json_sync(
+        f"{ROOT}/collections",
+        params=query_params,
+        timeout=2,
+        cache=True,
+        cache_ttl="1m",
+        return_type=dict[str, IconifyInfo],
+    )
 
 
 def collection(
@@ -79,17 +78,14 @@ def collection(
         query_params["chars"] = 1
     if info:
         query_params["info"] = 1
-    resp = _client().get(
-        f"{ROOT}/collection?prefix={prefix}", params=query_params, timeout=2
+    return anyenv.get_json_sync(
+        f"{ROOT}/collection?prefix={prefix}",
+        params=query_params,
+        timeout=2,
+        return_type=APIv2CollectionResponse,
+        cache=True,
+        cache_ttl="1m",
     )
-    if 400 <= resp.status_code < 500:  # noqa: PLR2004
-        msg = (
-            f"Icon set {prefix!r} not found. "
-            "Search for icons at https://icon-sets.iconify.design"
-        )
-        raise OSError(msg)
-    resp.raise_for_status()
-    return resp.json()  # type: ignore
 
 
 def last_modified(*prefixes: str) -> dict[str, int]:
@@ -114,9 +110,15 @@ def last_modified(*prefixes: str) -> dict[str, int]:
         UTC integer timestamp.
     """
     query_params = {"prefixes": ",".join(prefixes)}
-    resp = _client().get(f"{ROOT}/last-modified", params=query_params, timeout=2)
-    resp.raise_for_status()
-    if "lastModified" not in (content := resp.json()):  # pragma: no cover
+    content = get_json_sync(
+        f"{ROOT}/last-modified",
+        params=query_params,
+        timeout=2,
+        return_type=dict,
+        cache=True,
+        cache_ttl="1m",
+    )
+    if "lastModified" not in content:  # pragma: no cover
         msg = f"Unexpected response from API: {content}. Expected 'lastModified'."
         raise ValueError(msg)
     return content["lastModified"]  # type: ignore
@@ -185,17 +187,13 @@ def svg(
     if box:
         query_params["box"] = 1
 
-    resp = _client().get(f"{ROOT}/{prefix}/{name}.svg", params=query_params, timeout=2)
-
-    if 400 <= resp.status_code < 500:  # noqa: PLR2004
-        msg = (
-            f"Icon '{prefix}:{name}' not found. "
-            f"Search for icons at https://icon-sets.iconify.design?query={name}"
-        )
-        raise OSError(msg)
-
-    resp.raise_for_status()
-    return resp.content
+    return anyenv.get_bytes_sync(
+        f"{ROOT}/{prefix}/{name}.svg",
+        params=query_params,
+        timeout=2,
+        cache=True,
+        cache_ttl="1m",
+    )
 
 
 def css(
@@ -208,7 +206,7 @@ def css(
     square: bool | None = None,
     color: str | None = None,
     mode: Literal["mask", "background"] | None = None,
-    format: Literal["expanded", "compact", "compressed"] | None = None,  # noqa: A002
+    format: StylesheetFormat | None = None,  # noqa: A002
 ) -> str:
     """Return CSS for `icons` in `prefix`.
 
@@ -266,23 +264,20 @@ def css(
     if square:
         params["square"] = 1
 
-    resp = _client().get(
-        f"{ROOT}/{prefix}.css?icons={','.join(icons)}", params=params, timeout=2
+    resp = anyenv.get_text_sync(
+        f"{ROOT}/{prefix}.css?icons={','.join(icons)}",
+        params=params,
+        timeout=2,
+        cache=True,
+        cache_ttl="1m",
     )
-    if 400 <= resp.status_code < 500:  # noqa: PLR2004
-        msg = (
-            f"Icon set {prefix!r} not found. "
-            "Search for icons at https://icon-sets.iconify.design"
-        )
-        raise OSError(msg)
-    resp.raise_for_status()
-    if missing := set(re.findall(r"Could not find icon: ([^\s]*) ", resp.text)):
+    if missing := set(re.findall(r"Could not find icon: ([^\s]*) ", resp)):
         warnings.warn(
             f"Icon(s) {sorted(missing)} not found. "
             "Search for icons at https://icon-sets.iconify.design",
             stacklevel=2,
         )
-    return resp.text
+    return resp
 
 
 def icon_data(*keys: str) -> IconifyJSON:
@@ -304,15 +299,13 @@ def icon_data(*keys: str) -> IconifyJSON:
         Icon name(s).
     """
     prefix, names = _split_prefix_name(keys, allow_many=True)
-    resp = _client().get(f"{ROOT}/{prefix}.json?icons={','.join(names)}", timeout=2)
-    if (content := resp.json()) == 404:  # noqa: PLR2004
-        msg = (
-            f"Icon set {prefix!r} not found. "
-            "Search for icons at https://icon-sets.iconify.design"
-        )
-        raise OSError(msg)
-    resp.raise_for_status()
-    return content  # type: ignore
+    return get_json_sync(
+        f"{ROOT}/{prefix}.json?icons={','.join(names)}",
+        timeout=2,
+        return_type=IconifyJSON,
+        cache=True,
+        cache_ttl="1m",
+    )
 
 
 def search(
@@ -377,9 +370,14 @@ def search(
             params["prefixes"] = ",".join(prefixes)
     if category is not None:
         params["category"] = category
-    resp = _client().get(f"{ROOT}/search?query={query}", params=params, timeout=2)
-    resp.raise_for_status()
-    return resp.json()  # type: ignore
+    return get_json_sync(
+        f"{ROOT}/search?query={query}",
+        params=params,
+        timeout=2,
+        return_type=APIv2SearchResponse,
+        cache=True,
+        cache_ttl="1m",
+    )
 
 
 def keywords(
@@ -414,9 +412,14 @@ def keywords(
         params = {"keyword": keyword}
     else:
         params = {}
-    resp = _client().get(f"{ROOT}/keywords", params=params, timeout=2)
-    resp.raise_for_status()
-    return resp.json()  # type: ignore
+    return get_json_sync(
+        f"{ROOT}/keywords",
+        params=params,
+        timeout=2,
+        return_type=APIv3KeywordsResponse,
+        cache=True,
+        cache_ttl="1m",
+    )
 
 
 def iconify_version() -> str:
@@ -433,9 +436,7 @@ def iconify_version() -> str:
     >>> iconify_version()
     'Iconify API version 3.0.0-beta.1'
     """
-    resp = _client().get(f"{ROOT}/version", timeout=2)
-    resp.raise_for_status()
-    return resp.text
+    return anyenv.get_text_sync(f"{ROOT}/version", timeout=2, cache=True, cache_ttl="1d")
 
 
 @overload
@@ -481,3 +482,8 @@ def _split_prefix_name(
             raise ValueError(msg)
         return prefix, rest[0]
     return prefix, tuple(rest)
+
+
+if __name__ == "__main__":
+    data = svg("mdi:account")
+    print(data)
