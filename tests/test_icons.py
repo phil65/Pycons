@@ -7,11 +7,9 @@ from pycons.functional import get_icon_from_iconify_id
 
 
 @pytest.mark.asyncio
-async def test_standard_provider_format():
-    """Test fetching icons using standard provider format."""
-    registry = FontRegistry()
-
-    test_cases = [
+@pytest.mark.parametrize(
+    ("icon_id", "provider_name"),
+    [
         ("fa.heart", "Font Awesome Regular"),
         ("fas.heart", "Font Awesome Solid"),
         ("fab.github", "Font Awesome Brands"),
@@ -23,18 +21,20 @@ async def test_standard_provider_format():
         ("ph.house", "Phosphor"),
         ("ri.home-line", "Remix"),
         ("el.home", "Elusive"),
-    ]
-
-    for icon_id, provider_name in test_cases:
-        icon = await registry.get_icon(icon_id)
-        assert icon.character, f"{provider_name} icon has no character"
-        assert icon.ttf_path.exists(), f"{provider_name} font file does not exist"
+    ],
+)
+async def test_standard_provider_format(icon_id, provider_name):
+    """Test fetching icons using standard provider format."""
+    registry = FontRegistry()
+    icon = await registry.get_icon(icon_id)
+    assert icon.character, f"{provider_name} icon has no character"
+    assert icon.ttf_path.exists(), f"{provider_name} font file does not exist"
 
 
 @pytest.mark.asyncio
-async def test_iconify_format():
-    """Test fetching icons using Iconify format."""
-    iconify_test_cases = [
+@pytest.mark.parametrize(
+    ("iconify_id", "provider_name"),
+    [
         ("mdi:home", "Community Material Design"),
         ("fa6-regular:heart", "Font Awesome Regular"),
         ("fa6-solid:heart", "Font Awesome Solid"),
@@ -46,12 +46,13 @@ async def test_iconify_format():
         ("ph:house", "Phosphor"),
         ("ri:home-line", "Remix"),
         ("el:home", "Elusive"),
-    ]
-
-    for iconify_id, provider_name in iconify_test_cases:
-        icon = await get_icon_from_iconify_id(iconify_id)
-        assert icon.character, f"{provider_name} icon has no character"
-        assert icon.ttf_path.exists(), f"{provider_name} font file does not exist"
+    ],
+)
+async def test_iconify_format(iconify_id, provider_name):
+    """Test fetching icons using Iconify format."""
+    icon = await get_icon_from_iconify_id(iconify_id)
+    assert icon.character, f"{provider_name} icon has no character"
+    assert icon.ttf_path.exists(), f"{provider_name} font file does not exist"
 
 
 if __name__ == "__main__":
