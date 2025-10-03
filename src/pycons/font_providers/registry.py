@@ -106,7 +106,8 @@ class FontRegistry:
 
         # Get font info which ensures font is downloaded
         font_info = await self.get_font(provider.NAME)
-        mapping = load_json(font_info.mapping_path.read_text())
+        text = font_info.mapping_path.read_text("utf-8")
+        mapping = load_json(text, return_type=dict)
 
         if name not in mapping:
             msg = f"Icon '{name}' not found in {provider.DISPLAY_NAME}"
@@ -124,7 +125,7 @@ class FontRegistry:
         if prefix not in self._mapping_cache:
             mapping_path = self.mappings_dir / f"{prefix}.json"
             with mapping_path.open("r") as f:
-                self._mapping_cache[prefix] = load_json(f)
+                self._mapping_cache[prefix] = load_json(f, return_type=dict)
         return self._mapping_cache[prefix]
 
     async def get_character(self, icon_name: str) -> str:

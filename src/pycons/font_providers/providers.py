@@ -19,7 +19,7 @@ class FontAwesomeBase(FontProvider):
 
     async def get_latest_version(self) -> str:
         data = await fetch_url(self.GITHUB_API, use_cache=self.use_cache)
-        release_info = load_json(data)
+        release_info = load_json(data, return_type=dict)
         return release_info["tag_name"].lstrip("v")
 
 
@@ -35,7 +35,7 @@ class FontAwesomeRegularProvider(FontAwesomeBase):
         )
 
     def process_mapping(self, mapping_data: bytes) -> dict[str, str]:
-        data = load_json(mapping_data)
+        data = load_json(mapping_data, return_type=dict)
         return {
             name: info["unicode"]
             for name, info in data.items()
@@ -55,7 +55,7 @@ class FontAwesomeSolidProvider(FontAwesomeBase):
         )
 
     def process_mapping(self, mapping_data: bytes) -> dict[str, str]:
-        data = load_json(mapping_data)
+        data = load_json(mapping_data, return_type=dict)
         return {
             name: info["unicode"]
             for name, info in data.items()
@@ -75,7 +75,7 @@ class FontAwesomeBrandsProvider(FontAwesomeBase):
         )
 
     def process_mapping(self, mapping_data: bytes) -> dict[str, str]:
-        data = load_json(mapping_data)
+        data = load_json(mapping_data, return_type=dict)
         return {
             name: info["unicode"]
             for name, info in data.items()
@@ -99,7 +99,7 @@ class CommunityMaterialDesignProvider(FontProvider):
     async def get_latest_version(self) -> str:
         """Get latest version from GitHub tags."""
         data = await fetch_url(self.VERSION_URL, use_cache=self.use_cache)
-        tags = load_json(data)
+        tags = load_json(data, return_type=list)
         # Tags API returns list of tags, first one is most recent
         return tags[0]["name"].lstrip("v")
 
@@ -145,7 +145,7 @@ class CodiconsProvider(FontProvider):
 
     async def get_latest_version(self) -> str:
         data = await fetch_url(self.VERSION_URL, use_cache=self.use_cache)
-        release_info = load_json(data)
+        release_info = load_json(data, return_type=dict)
         return release_info["tag_name"].lstrip("v")
 
     def get_download_urls(self, version: str) -> tuple[str, str]:
@@ -155,7 +155,7 @@ class CodiconsProvider(FontProvider):
         )
 
     def process_mapping(self, mapping_data: bytes) -> dict[str, str]:
-        data = load_json(mapping_data)
+        data = load_json(mapping_data, return_type=dict)
         return {name.lower(): hex(code) for name, code in data.items()}
 
 
@@ -181,7 +181,7 @@ class PhosphorProvider(FontProvider):
 
     def process_mapping(self, mapping_data: bytes) -> dict[str, str]:
         """Process the Phosphor.json mapping file."""
-        data = load_json(mapping_data)
+        data = load_json(mapping_data, return_type=dict)
 
         # Get the regular icon set's icons (first set in iconSets array)
         icons = data["iconSets"][0]["icons"]
@@ -235,7 +235,7 @@ class ElusiveIconsProvider(FontProvider):
         """Get latest version, or use 'master' if API fails."""
         try:
             data = await fetch_url(self.VERSION_URL, use_cache=self.use_cache)
-            tags = load_json(data)
+            tags = load_json(data, return_type=list)
             return tags[0]["name"].lstrip("v")
         except Exception:  # noqa: BLE001
             # Fall back to master branch if API fails
