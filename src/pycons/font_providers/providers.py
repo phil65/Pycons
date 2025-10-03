@@ -146,9 +146,11 @@ class CodiconsProvider(FontProvider):
     VERSION_URL = "https://api.github.com/repos/microsoft/vscode-codicons/releases/latest"
 
     async def get_latest_version(self) -> str:
-        data = await fetch_url(self.VERSION_URL, use_cache=self.use_cache)
-        release_info = load_json(data, return_type=dict)
-        return release_info["tag_name"].lstrip("v")
+        # data = await fetch_url(self.VERSION_URL, use_cache=self.use_cache)
+        # release_info = load_json(data, return_type=dict)
+        # return release_info["tag_name"].lstrip("v")
+        # Pinned to 0.0.36 - later versions don't include TTF in releases
+        return "0.0.36"
 
     def get_download_urls(self, version: str) -> tuple[str, str]:
         return (
