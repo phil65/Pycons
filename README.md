@@ -2,8 +2,6 @@
 
 [![PyPI License](https://img.shields.io/pypi/l/pycons.svg)](https://pypi.org/project/pycons/)
 [![Package status](https://img.shields.io/pypi/status/pycons.svg)](https://pypi.org/project/pycons/)
-[![Daily downloads](https://img.shields.io/pypi/dd/pycons.svg)](https://pypi.org/project/pycons/)
-[![Weekly downloads](https://img.shields.io/pypi/dw/pycons.svg)](https://pypi.org/project/pycons/)
 [![Monthly downloads](https://img.shields.io/pypi/dm/pycons.svg)](https://pypi.org/project/pycons/)
 [![Distribution format](https://img.shields.io/pypi/format/pycons.svg)](https://pypi.org/project/pycons/)
 [![Wheel availability](https://img.shields.io/pypi/wheel/pycons.svg)](https://pypi.org/project/pycons/)
@@ -21,12 +19,8 @@
 [![Github last commit](https://img.shields.io/github/last-commit/phil65/pycons)](https://github.com/phil65/pycons/commits)
 [![Github release date](https://img.shields.io/github/release-date/phil65/pycons)](https://github.com/phil65/pycons/releases)
 [![Github language count](https://img.shields.io/github/languages/count/phil65/pycons)](https://github.com/phil65/pycons)
-[![Github commits this week](https://img.shields.io/github/commit-activity/w/phil65/pycons)](https://github.com/phil65/pycons)
 [![Github commits this month](https://img.shields.io/github/commit-activity/m/phil65/pycons)](https://github.com/phil65/pycons)
-[![Github commits this year](https://img.shields.io/github/commit-activity/y/phil65/pycons)](https://github.com/phil65/pycons)
 [![Package status](https://codecov.io/gh/phil65/pycons/branch/main/graph/badge.svg)](https://codecov.io/gh/phil65/pycons/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![PyUp](https://pyup.io/repos/github/phil65/pycons/shield.svg)](https://pyup.io/repos/github/phil65/pycons/)
 
 [Read the documentation!](https://phil65.github.io/pycons/)
-
