@@ -18,9 +18,11 @@ class FontAwesomeBase(FontProvider):
     BASE_URL = "https://raw.githubusercontent.com/FortAwesome/Font-Awesome"
 
     async def get_latest_version(self) -> str:
-        data = await fetch_url(self.GITHUB_API, use_cache=self.use_cache)
-        release_info = load_json(data, return_type=dict)
-        return release_info["tag_name"].lstrip("v")
+        # data = await fetch_url(self.GITHUB_API, use_cache=self.use_cache)
+        # release_info = load_json(data, return_type=dict)
+        # return release_info["tag_name"].lstrip("v")
+        # Pinned to 6.7.2 - FA 7.x changed repo structure (no TTF files)
+        return "6.7.2"
 
 
 class FontAwesomeRegularProvider(FontAwesomeBase):
