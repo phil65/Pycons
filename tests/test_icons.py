@@ -6,7 +6,6 @@ from pycons.font_providers.registry import FontRegistry
 from pycons.functional import get_icon_from_iconify_id
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("icon_id", "provider_name"),
     [
@@ -31,7 +30,6 @@ async def test_standard_provider_format(icon_id, provider_name):
     assert icon.ttf_path.exists(), f"{provider_name} font file does not exist"
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("iconify_id", "provider_name"),
     [
