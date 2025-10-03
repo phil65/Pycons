@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import TYPE_CHECKING
 
 from anyenv import load_json
-import anyio
 
 from pycons.font_providers.models import FontInfo, Icon
 from pycons.font_providers.providers import PROVIDERS
@@ -34,7 +34,7 @@ class FontRegistry:
 
         Returns a list of FontInfo objects, with None for any fonts that failed to load.
         """
-        results = await anyio.gather(
+        results = await asyncio.gather(
             *(self.get_font(name) for name in names), return_exceptions=True
         )
 
