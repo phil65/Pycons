@@ -320,11 +320,10 @@ class GoogleMaterialSymbolsOutlinedProvider(BaseGoogleMaterialSymbolsProvider):
     DISPLAY_NAME: ClassVar[str] = "Google Material Symbols Outlined"
 
     def get_download_urls(self, version: str) -> tuple[str, str]:
-        # Using the exact URL format you provided
-        base_url = "https://github.com/google/material-design-icons/raw/refs/heads/master/variablefont"
+        base_url = "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont"
         return (
-            f"{base_url}/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.ttf",
-            f"{base_url}/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.codepoints",
+            f"{base_url}/MaterialSymbolsOutlined[FILL,GRAD,opsz,wght].ttf",
+            f"{base_url}/MaterialSymbolsOutlined[FILL,GRAD,opsz,wght].codepoints",
         )
 
 
@@ -336,10 +335,10 @@ class GoogleMaterialSymbolsRoundedProvider(BaseGoogleMaterialSymbolsProvider):
     DISPLAY_NAME: ClassVar[str] = "Google Material Symbols Rounded"
 
     def get_download_urls(self, version: str) -> tuple[str, str]:
-        base_url = "https://github.com/google/material-design-icons/raw/refs/heads/master/variablefont"
+        base_url = "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont"
         return (
-            f"{base_url}/MaterialSymbolsRounded%5BFILL,GRAD,opsz,wght%5D.ttf",
-            f"{base_url}/MaterialSymbolsRounded%5BFILL,GRAD,opsz,wght%5D.codepoints",
+            f"{base_url}/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].ttf",
+            f"{base_url}/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].codepoints",
         )
 
 
@@ -351,10 +350,10 @@ class GoogleMaterialSymbolsSharpProvider(BaseGoogleMaterialSymbolsProvider):
     DISPLAY_NAME: ClassVar[str] = "Google Material Symbols Sharp"
 
     def get_download_urls(self, version: str) -> tuple[str, str]:
-        base_url = "https://github.com/google/material-design-icons/raw/refs/heads/master/variablefont"
+        base_url = "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont"
         return (
-            f"{base_url}/MaterialSymbolsSharp%5BFILL,GRAD,opsz,wght%5D.ttf",
-            f"{base_url}/MaterialSymbolsSharp%5BFILL,GRAD,opsz,wght%5D.codepoints",
+            f"{base_url}/MaterialSymbolsSharp[FILL,GRAD,opsz,wght].ttf",
+            f"{base_url}/MaterialSymbolsSharp[FILL,GRAD,opsz,wght].codepoints",
         )
 
 
