@@ -1,4 +1,7 @@
-"""Pycons: Icon utilities (Material Design icons & similar)"""
+"""Pycons: main package.
+
+Icon utilities (Material Design icons & similar).
+"""
 
 from __future__ import annotations
 
@@ -6,7 +9,7 @@ from importlib.metadata import version
 
 __version__ = version("pycons")
 __title__ = "Pycons"
-__description__ = "Icon utilities (Material Design icons & similar)"
+
 __author__ = "Philipp Temminghoff"
 __author_email__ = "philipptemminghoff@googlemail.com"
 __copyright__ = "Copyright (c) 2025 Philipp Temminghoff"
