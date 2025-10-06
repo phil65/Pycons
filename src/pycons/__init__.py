@@ -1,6 +1,5 @@
-__version__ = "0.1.1"
+from __future__ import annotations
 
+from importlib.metadata import version
 
-from pycons.functional import get_icon_sync, get_icon
-
-__all__ = ["get_icon", "get_icon_sync"]
+__version__ = version("pycons")
