@@ -38,11 +38,7 @@ class FontAwesomeRegularProvider(FontAwesomeBase):
 
     def process_mapping(self, mapping_data: bytes) -> dict[str, str]:
         data = load_json(mapping_data, return_type=dict)
-        return {
-            name: info["unicode"]
-            for name, info in data.items()
-            if "regular" in info["styles"]
-        }
+        return {name: info["unicode"] for name, info in data.items() if "regular" in info["styles"]}
 
 
 class FontAwesomeSolidProvider(FontAwesomeBase):
@@ -58,11 +54,7 @@ class FontAwesomeSolidProvider(FontAwesomeBase):
 
     def process_mapping(self, mapping_data: bytes) -> dict[str, str]:
         data = load_json(mapping_data, return_type=dict)
-        return {
-            name: info["unicode"]
-            for name, info in data.items()
-            if "solid" in info["styles"]
-        }
+        return {name: info["unicode"] for name, info in data.items() if "solid" in info["styles"]}
 
 
 class FontAwesomeBrandsProvider(FontAwesomeBase):
@@ -78,11 +70,7 @@ class FontAwesomeBrandsProvider(FontAwesomeBase):
 
     def process_mapping(self, mapping_data: bytes) -> dict[str, str]:
         data = load_json(mapping_data, return_type=dict)
-        return {
-            name: info["unicode"]
-            for name, info in data.items()
-            if "brands" in info["styles"]
-        }
+        return {name: info["unicode"] for name, info in data.items() if "brands" in info["styles"]}
 
 
 class CommunityMaterialDesignProvider(FontProvider):
@@ -93,9 +81,7 @@ class CommunityMaterialDesignProvider(FontProvider):
     DISPLAY_NAME: ClassVar[str] = "Material Design Icons"
 
     VERSION_URL = "https://api.github.com/repos/Templarian/MaterialDesign-Webfont/tags"
-    BASE_URL = (
-        "https://raw.githubusercontent.com/Templarian/MaterialDesign-Webfont/master"
-    )
+    BASE_URL = "https://raw.githubusercontent.com/Templarian/MaterialDesign-Webfont/master"
     CSS_PATTERN = r'\.mdi-([^:]+):before\s*{\s*content:\s*"(.+)"\s*}'
 
     async def get_latest_version(self) -> str:
@@ -286,9 +272,7 @@ class ElusiveIconsProvider(FontProvider):
 class BaseGoogleMaterialSymbolsProvider(FontProvider):
     """Base provider for Google's official Material Symbols."""
 
-    VERSION_URL = (
-        "https://api.github.com/repos/google/material-design-icons/releases/latest"
-    )
+    VERSION_URL = "https://api.github.com/repos/google/material-design-icons/releases/latest"
     BASE_URL = "https://github.com/google/material-design-icons/raw"
 
     async def get_latest_version(self) -> str:
@@ -320,7 +304,9 @@ class GoogleMaterialSymbolsOutlinedProvider(BaseGoogleMaterialSymbolsProvider):
     DISPLAY_NAME: ClassVar[str] = "Google Material Symbols Outlined"
 
     def get_download_urls(self, version: str) -> tuple[str, str]:
-        base_url = "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont"
+        base_url = (
+            "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont"
+        )
         return (
             f"{base_url}/MaterialSymbolsOutlined[FILL,GRAD,opsz,wght].ttf",
             f"{base_url}/MaterialSymbolsOutlined[FILL,GRAD,opsz,wght].codepoints",
@@ -335,7 +321,9 @@ class GoogleMaterialSymbolsRoundedProvider(BaseGoogleMaterialSymbolsProvider):
     DISPLAY_NAME: ClassVar[str] = "Google Material Symbols Rounded"
 
     def get_download_urls(self, version: str) -> tuple[str, str]:
-        base_url = "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont"
+        base_url = (
+            "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont"
+        )
         return (
             f"{base_url}/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].ttf",
             f"{base_url}/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].codepoints",
@@ -350,7 +338,9 @@ class GoogleMaterialSymbolsSharpProvider(BaseGoogleMaterialSymbolsProvider):
     DISPLAY_NAME: ClassVar[str] = "Google Material Symbols Sharp"
 
     def get_download_urls(self, version: str) -> tuple[str, str]:
-        base_url = "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont"
+        base_url = (
+            "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont"
+        )
         return (
             f"{base_url}/MaterialSymbolsSharp[FILL,GRAD,opsz,wght].ttf",
             f"{base_url}/MaterialSymbolsSharp[FILL,GRAD,opsz,wght].codepoints",

@@ -380,9 +380,7 @@ def search(
     )
 
 
-def keywords(
-    prefix: str | None = None, keyword: str | None = None
-) -> APIv3KeywordsResponse:
+def keywords(prefix: str | None = None, keyword: str | None = None) -> APIv3KeywordsResponse:
     """Intended for use in suggesting search queries.
 
     https://iconify.design/docs/api/keywords.html
@@ -468,10 +466,7 @@ def _split_prefix_name(
         raise ValueError(msg)
     if len(key) == 1:
         if ":" not in key[0]:
-            msg = (
-                "Single-argument icon names must be in the format 'prefix:name'. "
-                f"Got {key[0]!r}"
-            )
+            msg = f"Single-argument icon names must be in the format 'prefix:name'. Got {key[0]!r}"
             raise ValueError(msg)
         prefix, name = key[0].split(":", maxsplit=1)
         return (prefix, (name,)) if allow_many else (prefix, name)

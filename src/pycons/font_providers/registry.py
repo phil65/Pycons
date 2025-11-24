@@ -64,9 +64,7 @@ class FontRegistry:
         provider = PROVIDERS[name]
         ttf_url, mapping_url = provider.get_download_urls(version)
         # Download files in parallel
-        ttf_data, mapping_data = await asyncio.gather(
-            fetch_url(ttf_url), fetch_url(mapping_url)
-        )
+        ttf_data, mapping_data = await asyncio.gather(fetch_url(ttf_url), fetch_url(mapping_url))
         # Process mapping while writing TTF
         await asyncio.gather(
             asyncio.to_thread(self._write_ttf, name, ttf_data),
