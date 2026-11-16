@@ -1,38 +1,194 @@
-"""Wrapper for api calls at https://api.iconify.design/."""
+"""Wrapper for the Iconify API and the Iconify icon set packages.
+
+Per-icon calls (`svg`, `css`, `icon_data`, `search`, ...) go to the Iconify API.
+Collection-level calls (`collections`, `collection`, `icon_set`) load the
+`@iconify/collections` and `@iconify-json/<prefix>` npm packages from a CDN,
+as the public API is rate-limited for bulk usage.
+
+Environment variables:
+
+| Variable | Default |
+|---|---|
+| `PYCONS_ICONIFY_API` | `https://api.iconify.design` |
+| `PYCONS_ICONIFY_CDN` | `https://cdn.jsdelivr.net/npm,https://unpkg.com` |
+
+CDN roots are tried in order. jsDelivr refuses files above 50 MB (e.g. `fluent-emoji`),
+unpkg serves those.
+"""
 
 from __future__ import annotations
 
+import contextlib
+import email.utils
+import functools
+import os
 import re
+import time
 from typing import TYPE_CHECKING, Literal, overload
+from urllib.parse import urljoin
 import warnings
 
 import anyenv
-from anyenv.download.functional import get_json_sync
 
+from pycons.iconify.errors import IconifyError, IconifyRateLimitError, IconNotFoundError
 from pycons.iconify.iconify_types import (
     APIv2CollectionResponse,
     APIv2SearchResponse,
     APIv3KeywordsResponse,
     IconifyInfo,
     IconifyJSON,
+    IconifyMetadata,
 )
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Iterator, Mapping
+
+    from anyenv.download.http_types import ParamsType
 
     from pycons.iconify.iconify_types import Flip, Rotation
 
 StylesheetFormat = Literal["expanded", "compact", "compressed"]
 
 
-ROOT = "https://api.iconify.design"
+API_ROOT_ENV = "PYCONS_ICONIFY_API"
+CDN_ROOT_ENV = "PYCONS_ICONIFY_CDN"
+DEFAULT_API_ROOT = "https://api.iconify.design"
+DEFAULT_CDN_ROOTS = ("https://cdn.jsdelivr.net/npm", "https://unpkg.com")
+
+API_TIMEOUT = 10
+CDN_TIMEOUT = 60
+METADATA_TTL = "1d"
+DATA_TTL = "7d"
+MAX_REDIRECTS = 5
+
+
+def api_root() -> str:
+    """Return the Iconify API root URL."""
+    return os.environ.get(API_ROOT_ENV, DEFAULT_API_ROOT).rstrip("/")
+
+
+def cdn_roots() -> list[str]:
+    """Return the root URLs of the npm CDNs serving the Iconify packages, in order."""
+    value = os.environ.get(CDN_ROOT_ENV, "")
+    roots = [root.strip().rstrip("/") for root in value.split(",") if root.strip()]
+    return roots or list(DEFAULT_CDN_ROOTS)
+
+
+def _retry_after(headers: Mapping[str, str]) -> int | None:
+    value = next((v for k, v in headers.items() if k.lower() == "retry-after"), None)
+    if value is None:
+        return None
+    if value.isdigit():
+        return int(value)
+    try:
+        date = email.utils.parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return None
+    return max(0, int(date.timestamp() - time.time()))
+
+
+@contextlib.contextmanager
+def _translate_errors(url: str) -> Iterator[None]:
+    try:
+        yield
+    except anyenv.ResponseError as e:
+        match e.status_code:
+            case 404:
+                raise IconNotFoundError(url) from e
+            case 429:
+                headers = e.response.headers if e.response else {}
+                raise IconifyRateLimitError(url, _retry_after(headers)) from e
+            case code:
+                msg = f"HTTP {code}: {url}"
+                raise IconifyError(msg, url) from e
+
+
+def _get_json[T](
+    url: str,
+    return_type: type[T],
+    *,
+    ttl: str,
+    params: ParamsType | None = None,
+    timeout: float = API_TIMEOUT,
+) -> T:
+    with _translate_errors(url):
+        return anyenv.get_json_sync(
+            url,
+            params=params,
+            timeout=timeout,
+            return_type=return_type,
+            cache=True,
+            cache_ttl=ttl,
+        )
+
+
+def _get_text(url: str, *, ttl: str, params: ParamsType | None = None) -> str:
+    with _translate_errors(url):
+        return anyenv.get_text_sync(
+            url, params=params, timeout=API_TIMEOUT, cache=True, cache_ttl=ttl
+        )
+
+
+def _get_bytes(url: str, *, ttl: str, params: ParamsType | None = None) -> bytes:
+    with _translate_errors(url):
+        return anyenv.get_bytes_sync(
+            url, params=params, timeout=API_TIMEOUT, cache=True, cache_ttl=ttl
+        )
+
+
+@functools.cache
+def _resolve_redirects(url: str) -> str:
+    """Return the final URL after redirects (e.g. unpkg's version redirect).
+
+    anyenv does not follow redirects. On network errors the URL is returned unchanged,
+    so cached responses stay usable offline.
+    """
+    for _ in range(MAX_REDIRECTS):
+        try:
+            with _translate_errors(url):
+                response = anyenv.request_sync("HEAD", url, timeout=API_TIMEOUT)
+        except anyenv.RequestError:
+            return url
+        if not 300 <= response.status_code < 400 or not (  # noqa: PLR2004
+            location := response.headers.get("location")
+        ):
+            return url
+        url = urljoin(url, location)
+    return url
+
+
+def _package_json[T](package: str, file: str, return_type: type[T]) -> T:
+    """Fetch a file of an npm package, trying the CDN roots in order.
+
+    A 404 is final, other HTTP and network errors fall through to the next root.
+    """
+    *fallbacks, last = cdn_roots()
+    for root in fallbacks:
+        try:
+            url = _resolve_redirects(f"{root}/{package}/{file}")
+            return _get_json(url, return_type, ttl=DATA_TTL, timeout=CDN_TIMEOUT)
+        except IconNotFoundError:
+            raise
+        except (IconifyError, anyenv.RequestError):
+            continue
+    url = _resolve_redirects(f"{last}/{package}/{file}")
+    return _get_json(url, return_type, ttl=DATA_TTL, timeout=CDN_TIMEOUT)
+
+
+def _optional_package_json[T](package: str, file: str, return_type: type[T]) -> T | None:
+    try:
+        return _package_json(package, file, return_type)
+    except IconNotFoundError:
+        return None
 
 
 def collections(*prefixes: str) -> dict[str, IconifyInfo]:
     """Return collections where key is icon set prefix, value is IconifyInfo object.
 
     https://iconify.design/docs/api/collections.html
+
+    Loaded from the `@iconify/collections` package instead of the API.
 
     Parameters
     ----------
@@ -43,15 +199,25 @@ def collections(*prefixes: str) -> dict[str, IconifyInfo]:
         Comma separated list of icon set prefixes. You can use partial prefixes that
         end with "-", such as "mdi-" matches "mdi-light".
     """
-    query_params = {"prefixes": ",".join(prefixes)}
-    return anyenv.get_json_sync(
-        f"{ROOT}/collections",
-        params=query_params,
-        timeout=2,
-        cache=True,
-        cache_ttl="1m",
-        return_type=dict[str, IconifyInfo],
-    )
+    data = _package_json("@iconify/collections", "collections.json", dict[str, IconifyInfo])
+    if not prefixes:
+        return data
+    return {
+        key: info
+        for key, info in data.items()
+        if any(key == p or (p.endswith("-") and key.startswith(p)) for p in prefixes)
+    }
+
+
+def icon_set(prefix: str) -> IconifyJSON:
+    """Return the complete data of an icon set, including all icons and aliases.
+
+    Loaded from the `@iconify-json/<prefix>` package.
+
+    Args:
+        prefix: Icon set prefix.
+    """
+    return _package_json(f"@iconify-json/{prefix}", "icons.json", IconifyJSON)
 
 
 def collection(
@@ -63,6 +229,9 @@ def collection(
 
     https://iconify.design/docs/api/collection.html
 
+    Built from the `@iconify-json/<prefix>` package in the same shape as the API
+    response.
+
     Parameters
     ----------
     prefix : str
@@ -73,19 +242,47 @@ def collection(
         If enabled, the response will include the character map. The character map
         exists only in icon sets that were imported from icon fonts.
     """
-    query_params = {}
-    if chars:
-        query_params["chars"] = 1
+    package = f"@iconify-json/{prefix}"
+    data = icon_set(prefix)
+    set_info = _package_json(package, "info.json", IconifyInfo)
+    metadata = _optional_package_json(package, "metadata.json", IconifyMetadata) or {}
+    icons = data["icons"]
+    aliases = data.get("aliases", {})
+
+    visible = [name for name, icon in icons.items() if not icon.get("hidden")]
+    visible_set = set(visible)
+    categories = {
+        title: [name for name in names if name in visible_set]
+        for title, names in metadata.get("categories", {}).items()
+    }
+    categorized = {name for names in categories.values() for name in names}
+    hidden = [name for name, icon in icons.items() if icon.get("hidden")]
+    hidden += [name for name, alias in aliases.items() if alias.get("hidden")]
+
+    response: APIv2CollectionResponse = {
+        "prefix": prefix,
+        "total": len(visible),
+        "title": set_info["name"],
+    }
+    if uncategorized := [name for name in visible if name not in categorized]:
+        response["uncategorized"] = uncategorized
+    if categories:
+        response["categories"] = categories
+    if hidden:
+        response["hidden"] = hidden
+    if visible_aliases := {
+        name: alias["parent"] for name, alias in aliases.items() if not alias.get("hidden")
+    }:
+        response["aliases"] = visible_aliases
+    if "prefixes" in metadata:
+        response["prefixes"] = metadata["prefixes"]
+    if "suffixes" in metadata:
+        response["suffixes"] = metadata["suffixes"]
     if info:
-        query_params["info"] = 1
-    return anyenv.get_json_sync(
-        f"{ROOT}/collection?prefix={prefix}",
-        params=query_params,
-        timeout=2,
-        return_type=APIv2CollectionResponse,
-        cache=True,
-        cache_ttl="1m",
-    )
+        response["info"] = set_info
+    if chars and (char_map := _optional_package_json(package, "chars.json", dict[str, str])):
+        response["chars"] = char_map
+    return response
 
 
 def last_modified(*prefixes: str) -> dict[str, int]:
@@ -110,14 +307,7 @@ def last_modified(*prefixes: str) -> dict[str, int]:
         UTC integer timestamp.
     """
     query_params = {"prefixes": ",".join(prefixes)}
-    content = get_json_sync(
-        f"{ROOT}/last-modified",
-        params=query_params,
-        timeout=2,
-        return_type=dict,
-        cache=True,
-        cache_ttl="1m",
-    )
+    content = _get_json(f"{api_root()}/last-modified", dict, ttl=METADATA_TTL, params=query_params)
     if "lastModified" not in content:  # pragma: no cover
         msg = f"Unexpected response from API: {content}. Expected 'lastModified'."
         raise ValueError(msg)
@@ -187,13 +377,7 @@ def svg(
     if box:
         query_params["box"] = 1
 
-    return anyenv.get_bytes_sync(
-        f"{ROOT}/{prefix}/{name}.svg",
-        params=query_params,
-        timeout=2,
-        cache=True,
-        cache_ttl="1m",
-    )
+    return _get_bytes(f"{api_root()}/{prefix}/{name}.svg", ttl=DATA_TTL, params=query_params)
 
 
 def css(
@@ -264,12 +448,8 @@ def css(
     if square:
         params["square"] = 1
 
-    resp = anyenv.get_text_sync(
-        f"{ROOT}/{prefix}.css?icons={','.join(icons)}",
-        params=params,
-        timeout=2,
-        cache=True,
-        cache_ttl="1m",
+    resp = _get_text(
+        f"{api_root()}/{prefix}.css?icons={','.join(icons)}", ttl=DATA_TTL, params=params
     )
     if missing := set(re.findall(r"Could not find icon: ([^\s]*) ", resp)):
         warnings.warn(
@@ -299,12 +479,8 @@ def icon_data(*keys: str) -> IconifyJSON:
         Icon name(s).
     """
     prefix, names = _split_prefix_name(keys, allow_many=True)
-    return get_json_sync(
-        f"{ROOT}/{prefix}.json?icons={','.join(names)}",
-        timeout=2,
-        return_type=IconifyJSON,
-        cache=True,
-        cache_ttl="1m",
+    return _get_json(
+        f"{api_root()}/{prefix}.json?icons={','.join(names)}", IconifyJSON, ttl=DATA_TTL
     )
 
 
@@ -370,13 +546,11 @@ def search(
             params["prefixes"] = ",".join(prefixes)
     if category is not None:
         params["category"] = category
-    return get_json_sync(
-        f"{ROOT}/search?query={query}",
+    return _get_json(
+        f"{api_root()}/search?query={query}",
+        APIv2SearchResponse,
+        ttl=METADATA_TTL,
         params=params,
-        timeout=2,
-        return_type=APIv2SearchResponse,
-        cache=True,
-        cache_ttl="1m",
     )
 
 
@@ -410,13 +584,8 @@ def keywords(prefix: str | None = None, keyword: str | None = None) -> APIv3Keyw
         params = {"keyword": keyword}
     else:
         params = {}
-    return get_json_sync(
-        f"{ROOT}/keywords",
-        params=params,
-        timeout=2,
-        return_type=APIv3KeywordsResponse,
-        cache=True,
-        cache_ttl="1m",
+    return _get_json(
+        f"{api_root()}/keywords", APIv3KeywordsResponse, ttl=METADATA_TTL, params=params
     )
 
 
@@ -434,7 +603,7 @@ def iconify_version() -> str:
     >>> iconify_version()
     'Iconify API version 3.0.0-beta.1'
     """
-    return anyenv.get_text_sync(f"{ROOT}/version", timeout=2, cache=True, cache_ttl="1d")
+    return _get_text(f"{api_root()}/version", ttl=METADATA_TTL)
 
 
 @overload
