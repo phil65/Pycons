@@ -118,6 +118,17 @@ class IconifyIcon(IconifyOptional, total=False):
 
     body: Required[str]
     """Icon's SVG data."""
+    hidden: bool
+    """Icon was removed from the set but is kept for backwards compatibility."""
+
+
+class IconifyAlias(IconifyOptional, total=False):
+    """Iconify alias object."""
+
+    parent: Required[str]
+    """Name of the parent icon."""
+    hidden: bool
+    """Alias was removed from the set but is kept for backwards compatibility."""
 
 
 class IconifyJSON(IconifyOptional, total=False):
@@ -129,10 +140,21 @@ class IconifyJSON(IconifyOptional, total=False):
     """Dictionary of icon names to icon data."""
     lastModified: int
     """Timestamp of last modification."""
-    aliases: dict[str, str]
-    """Dictionary mapping aliases to their parent icon names."""
+    aliases: dict[str, IconifyAlias]
+    """Dictionary mapping aliases to their alias data."""
     not_found: list[str]
     """List of icon names that were not found."""
+
+
+class IconifyMetadata(TypedDict, total=False):
+    """Icon set metadata, as published in the @iconify-json packages (metadata.json)."""
+
+    categories: dict[str, list[str]]
+    """Icon names sorted by category."""
+    prefixes: dict[str, str]
+    """Theme prefixes."""
+    suffixes: dict[str, str]
+    """Theme suffixes."""
 
 
 class APIv2SearchResponse(TypedDict, total=False):
