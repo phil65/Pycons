@@ -25,7 +25,7 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
-  "anyenv[httpx]>=0.2.0",
+  "anyenv[httpx]>=2.0.17",
   "appdirs>=1.4.4",
   # Only add below (Copier)
   "httpx>=0.28.1",
