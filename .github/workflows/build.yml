@@ -46,6 +46,8 @@ jobs:
         run: uv run --no-group docs mypy src/pycons/
 
       - name: Run tests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: uv run --no-group docs pytest --cov-report=xml --cov=src/pycons/ --cov-report=term-missing
 
       - name: Upload test results to Codecov
