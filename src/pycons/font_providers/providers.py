@@ -112,7 +112,8 @@ class CommunityMaterialDesignProvider(FontProvider):
                 # Extract the Unicode value - format is: content: "\F01C9";
                 if "\\F" in line.upper() or "\\f" in line:
                     unicode_value = (
-                        line.split("content:")[1]
+                        line
+                        .split("content:")[1]
                         .split('"\\')[1]  # Get part after the backslash
                         .split('"')[0]  # Get part before the closing quote
                     )
