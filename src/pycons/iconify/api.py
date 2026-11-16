@@ -24,7 +24,7 @@ import functools
 import os
 import re
 import time
-from typing import TYPE_CHECKING, Literal, overload
+from typing import TYPE_CHECKING, Any, Literal, cast, overload
 from urllib.parse import urljoin
 import warnings
 
@@ -112,15 +112,13 @@ def _get_json[T](
     params: ParamsType | None = None,
     timeout: float = API_TIMEOUT,
 ) -> T:
+    # return_type is only used for typing: anyenv validates via isinstance without
+    # pydantic (fails for TypedDicts), and validating whole icon sets would be slow.
     with _translate_errors(url):
-        return anyenv.get_json_sync(
-            url,
-            params=params,
-            timeout=timeout,
-            return_type=return_type,
-            cache=True,
-            cache_ttl=ttl,
+        data: Any = anyenv.get_json_sync(
+            url, params=params, timeout=timeout, cache=True, cache_ttl=ttl
         )
+    return cast("T", data)
 
 
 def _get_text(url: str, *, ttl: str, params: ParamsType | None = None) -> str:
@@ -438,7 +436,7 @@ def css(
         are "expanded", "compact" and "compressed".
     """
     prefix, icons = _split_prefix_name(keys, allow_many=True)
-    params: dict = {}
+    params: dict = {"icons": ",".join(icons)}
 
     for k in ("selector", "common", "override", "var", "color", "mode", "format"):
         if (val := locals()[k]) is not None:
@@ -448,9 +446,7 @@ def css(
     if square:
         params["square"] = 1
 
-    resp = _get_text(
-        f"{api_root()}/{prefix}.css?icons={','.join(icons)}", ttl=DATA_TTL, params=params
-    )
+    resp = _get_text(f"{api_root()}/{prefix}.css", ttl=DATA_TTL, params=params)
     if missing := set(re.findall(r"Could not find icon: ([^\s]*) ", resp)):
         warnings.warn(
             f"Icon(s) {sorted(missing)} not found. "
@@ -534,7 +530,7 @@ def search(
     category : str, optional
         Filter icon sets by category.
     """
-    params: dict = {}
+    params: dict = {"query": query}
     if limit is not None:
         params["limit"] = limit
     if start is not None:
@@ -547,7 +543,7 @@ def search(
     if category is not None:
         params["category"] = category
     return _get_json(
-        f"{api_root()}/search?query={query}",
+        f"{api_root()}/search",
         APIv2SearchResponse,
         ttl=METADATA_TTL,
         params=params,
