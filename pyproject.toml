@@ -28,7 +28,7 @@ dependencies = [
   "anyenv[httpx]>=2.0.17",
   "appdirs>=1.4.4",
   # Only add below (Copier)
-  "httpx>=0.28.1",
+  "universal-pathlib>=0.3.4",
 ]
 
 [project.urls]
