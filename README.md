@@ -9,7 +9,6 @@
 [![Implementation](https://img.shields.io/pypi/implementation/pycons.svg)](https://pypi.org/project/pycons/)
 [![Releases](https://img.shields.io/github/downloads/phil65/Pycons/total.svg)](https://github.com/phil65/Pycons/releases)
 [![Github Contributors](https://img.shields.io/github/contributors/phil65/Pycons)](https://github.com/phil65/Pycons/graphs/contributors)
-[![Github Discussions](https://img.shields.io/github/discussions/phil65/Pycons)](https://github.com/phil65/Pycons/discussions)
 [![Github Forks](https://img.shields.io/github/forks/phil65/Pycons)](https://github.com/phil65/Pycons/forks)
 [![Github Issues](https://img.shields.io/github/issues/phil65/Pycons)](https://github.com/phil65/Pycons/issues)
 [![Github Issues](https://img.shields.io/github/issues-pr/phil65/Pycons)](https://github.com/phil65/Pycons/pulls)
