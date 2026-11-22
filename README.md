@@ -24,3 +24,94 @@
 [![PyUp](https://pyup.io/repos/github/phil65/Pycons/shield.svg)](https://pyup.io/repos/github/phil65/Pycons/)
 
 [Read the documentation!](https://phil65.github.io/Pycons/)
+
+Icon utilities for Python: resolve icon names from popular icon fonts to Unicode characters
+and font files, fetch SVGs and icon sets from [Iconify](https://iconify.design), build favicon
+URLs and pick emoji icons for file paths.
+
+## Installation
+
+```bash
+pip install pycons
+```
+
+Requires Python 3.13+.
+
+## Quickstart
+
+### Icon fonts
+
+Icons are addressed as `prefix.name`. The font and its codepoint mapping are downloaded on
+first use and cached in the user cache directory.
+
+```python
+import asyncio
+
+from pycons import get_icon, get_icon_sync
+
+icon = get_icon_sync("fa.heart")
+print(icon.character, icon.ttf_path)  # Unicode character + path to the TTF file
+
+icon = asyncio.run(get_icon("mdi.home"))
+```
+
+Iconify-style identifiers are supported for the bundled fonts as well:
+
+```python
+import asyncio
+
+from pycons.functional import get_icon_from_iconify_id
+
+icon = asyncio.run(get_icon_from_iconify_id("material-symbols:home-rounded"))
+```
+
+| Prefix | Font | Iconify prefix |
+| --- | --- | --- |
+| `fa` / `fas` / `fab` | Font Awesome 6 Regular / Solid / Brands | `fa6-regular` / `fa6-solid` / `fa6-brands` |
+| `mdi` | Community Material Design Icons | `mdi` |
+| `mso` / `msr` / `mss` | Google Material Symbols Outlined / Rounded / Sharp | `material-symbols` (`-outline`, `-rounded`, `-sharp` suffix) |
+| `msc` | VS Code Codicons | `codicon` |
+| `ph` | Phosphor | `ph` |
+| `ri` | Remix Icon | `ri` |
+| `el` | Elusive Icons | `el` |
+
+### Iconify
+
+`pycons.iconify.api` wraps the [Iconify API](https://iconify.design/docs/api/) for per-icon
+requests and loads whole icon sets from the `@iconify-json/*` npm packages via CDN
+(jsDelivr, falling back to unpkg), since the public API is rate-limited for bulk use.
+
+```python
+from pycons.iconify import api
+
+svg = api.svg("mdi:home", color="red", height=24)  # bytes
+result = api.search("arrow", limit=32)
+mdi = api.icon_set("mdi")  # full IconifyJSON data
+sets = api.collections("mdi", "fa6-")  # metadata of matching icon sets
+```
+
+Errors are raised as `IconNotFoundError`, `IconifyRateLimitError` or `IconifyError`
+(`pycons.iconify.errors`). The endpoints can be overridden with the `PYCONS_ICONIFY_API` and
+`PYCONS_ICONIFY_CDN` (comma-separated) environment variables.
+
+### Favicons and file icons
+
+```python
+from pycons.asciicons import get_path_ascii_icon
+from pycons.favicon import get_favicon
+
+get_favicon("https://github.com", provider="google", size=64)  # favicon URL
+get_path_ascii_icon("script.py")  # "🐍"
+```
+
+## Features
+
+- 11 icon fonts behind one `prefix.name` lookup, with async and sync APIs
+- Cached downloads; set `GITHUB_TOKEN` to avoid GitHub rate limits when fetching fonts
+- Typed Iconify wrapper: SVG, CSS, search, keywords, icon data and full icon sets
+- Favicon URL builder for Google, DuckDuckGo, Icon Horse, Yandex, favicon.io and favicon.ninja
+- Emoji icons for files and folders by extension (works with `upath` paths)
+
+## Documentation
+
+See the [documentation](https://phil65.github.io/Pycons/) for the API reference.
