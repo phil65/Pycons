@@ -1,4 +1,4 @@
-"""Font-based icon providers."""
+"""Functional API for looking up font icons."""
 
 from __future__ import annotations
 
@@ -13,13 +13,16 @@ if TYPE_CHECKING:
 
 
 async def get_icon(icon_name: str) -> Icon:
-    """Get an icon character and font family.
+    """Get a font icon, downloading the font on first use.
 
     Args:
         icon_name: Name in format "prefix.name" (e.g. "fa.heart")
 
     Returns:
-        Tuple of (unicode_character, font_family)
+        Icon with the Unicode character and the path to the font file
+
+    Raises:
+        ValueError: If the prefix is unknown or the icon does not exist
     """
     from pycons.font_providers.registry import FontRegistry
 
@@ -28,7 +31,7 @@ async def get_icon(icon_name: str) -> Icon:
 
 
 def get_icon_sync(icon_name: str) -> Icon:
-    """Synchronous version of get_icon_async."""
+    """Synchronous version of `get_icon`."""
     return asyncio.run(get_icon(icon_name))
 
 

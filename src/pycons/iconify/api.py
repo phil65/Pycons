@@ -188,14 +188,10 @@ def collections(*prefixes: str) -> dict[str, IconifyInfo]:
 
     Loaded from the `@iconify/collections` package instead of the API.
 
-    Parameters
-    ----------
-    prefix : str, optional
-        Icon set prefix if you want to get the result only for one icon set.
-        If None, return all collections.
-    prefixes : Sequence[str], optional
-        Comma separated list of icon set prefixes. You can use partial prefixes that
-        end with "-", such as "mdi-" matches "mdi-light".
+    Args:
+        prefixes: Icon set prefixes to filter by. Partial prefixes ending with "-"
+            match all sets starting with them (e.g. "mdi-" matches "mdi-light").
+            If none are given, all collections are returned.
     """
     data = _package_json("@iconify/collections", "collections.json", dict[str, IconifyInfo])
     if not prefixes:
@@ -457,7 +453,7 @@ def css(
 
 
 def icon_data(*keys: str) -> IconifyJSON:
-    """Return icon data for `names` in `prefix`.
+    """Return icon data for the given icons of one icon set.
 
     https://iconify.design/docs/api/icon-data.html
 
@@ -471,8 +467,6 @@ def icon_data(*keys: str) -> IconifyJSON:
     keys : str
         Icon set prefix and name(s). May be passed as a single string in the format
         `"prefix:icon"` or as multiple strings: `'prefix', 'icon1', 'icon2'`.
-    names : str, optional
-        Icon name(s).
     """
     prefix, names = _split_prefix_name(keys, allow_many=True)
     return _get_json(
