@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from pycons.models import Icon
+    from pycons.font_providers.models import Icon
 
 
 async def get_icon(icon_name: str) -> Icon:
@@ -83,7 +83,7 @@ async def get_icon_from_iconify_id(iconify_id: str) -> Icon:
             name = icon_name
     else:
         # For other namespaces, look up the mapping
-        prefix = namespace_map.get(namespace)  # type: ignore[assignment]
+        prefix = namespace_map.get(namespace)
         if not prefix:
             msg = f"Unsupported Iconify namespace: {namespace}"
             raise ValueError(msg)

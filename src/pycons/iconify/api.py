@@ -42,7 +42,7 @@ from pycons.iconify.iconify_types import (
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator, Mapping
+    from collections.abc import Generator, Iterable, Mapping
 
     from anyenv.download.http_types import ParamsType
 
@@ -89,7 +89,7 @@ def _retry_after(headers: Mapping[str, str]) -> int | None:
 
 
 @contextlib.contextmanager
-def _translate_errors(url: str) -> Iterator[None]:
+def _translate_errors(url: str) -> Generator[None]:
     try:
         yield
     except anyenv.ResponseError as e:
@@ -309,7 +309,7 @@ def last_modified(*prefixes: str) -> dict[str, int]:
     if "lastModified" not in content:  # pragma: no cover
         msg = f"Unexpected response from API: {content}. Expected 'lastModified'."
         raise ValueError(msg)
-    return content["lastModified"]  # type: ignore
+    return content["lastModified"]
 
 
 def svg(
@@ -359,7 +359,7 @@ def svg(
     prefix, name = _split_prefix_name(key)
 
     if rotate not in (None, 1, 2, 3):
-        rotate = str(rotate).replace("deg", "") + "deg"  # type: ignore
+        rotate = str(rotate).replace("deg", "") + "deg"  # ty: ignore[invalid-assignment]
 
     query_params = {
         "color": color,
