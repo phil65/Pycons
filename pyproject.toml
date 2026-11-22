@@ -3,7 +3,7 @@
 [project]
 name = "pycons"
 version = "1.1.0"
-description = "Icon utilities (Material Design icons & similar)"
+description = "Icon utilities: icon fonts (Font Awesome, Material Design & more), Iconify API, favicons and file-type icons"
 readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
@@ -11,7 +11,18 @@ license-files = ["LICENSE"]
 authors = [
   { name = "Philipp Temminghoff", email = "philipptemminghoff@googlemail.com" },
 ]
-keywords = []
+keywords = [
+  "codicons",
+  "favicon",
+  "font-awesome",
+  "icon-fonts",
+  "iconify",
+  "icons",
+  "material-design",
+  "material-symbols",
+  "phosphor",
+  "svg",
+]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -20,7 +31,8 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
-  "Topic :: Software Development",
+  "Topic :: Multimedia :: Graphics",
+  "Topic :: Software Development :: Libraries :: Python Modules",
   "Topic :: Utilities",
   "Typing :: Typed",
 ]
@@ -35,6 +47,7 @@ dependencies = [
 "Code coverage" = "https://app.codecov.io/gh/phil65/Pycons"
 Discussions = "https://github.com/phil65/Pycons/discussions"
 Documentation = "https://phil65.github.io/Pycons/"
+Homepage = "https://github.com/phil65/Pycons"
 Issues = "https://github.com/phil65/Pycons/issues"
 Source = "https://github.com/phil65/Pycons"
 
