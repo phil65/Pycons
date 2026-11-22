@@ -6,6 +6,9 @@ from pycons.font_providers.registry import FontRegistry
 from pycons.functional import get_icon_from_iconify_id
 
 
+pytestmark = pytest.mark.network  # icon fonts are downloaded on first use
+
+
 @pytest.mark.parametrize(
     ("icon_id", "provider_name"),
     [

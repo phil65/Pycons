@@ -63,11 +63,13 @@ def test_roots_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
     assert api.cdn_roots() == list(api.DEFAULT_CDN_ROOTS)
 
 
+@pytest.mark.network
 def test_collections() -> None:
     assert len(api.collections()) > 100  # noqa: PLR2004
     assert set(api.collections("mdi", "fa6-")) == {"mdi", "fa6-solid", "fa6-regular", "fa6-brands"}
 
 
+@pytest.mark.network
 def test_collection() -> None:
     result = api.collection("mdi", info=True)
     assert result["prefix"] == "mdi"
@@ -80,11 +82,13 @@ def test_collection() -> None:
     )
 
 
+@pytest.mark.network
 def test_collection_not_found() -> None:
     with pytest.raises(IconNotFoundError):
         api.collection("this-set-does-not-exist")
 
 
+@pytest.mark.network
 def test_icon_set() -> None:
     data = api.icon_set("fa-brands")
     assert data["prefix"] == "fa-brands"

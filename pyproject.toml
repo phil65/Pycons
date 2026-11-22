@@ -108,6 +108,7 @@ reportPrivateImportUsage = false
 log_cli = true
 log_date_format = "%Y-%m-%d %H:%M:%S"
 log_format = "%(asctime)s %(levelname)s %(message)s"
+markers = ["network: test requires network access (Iconify API / CDN, font downloads)"]
 minversion = "9.0"
 testpaths = ["tests/"]
 asyncio_mode = "auto"
