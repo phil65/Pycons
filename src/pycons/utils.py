@@ -14,7 +14,7 @@ TOKEN = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
 
 
 async def fetch_url(url: str, use_cache: bool = True) -> bytes:
-    """Fetch data from URL using httpx with optional hishel caching (on by default)."""
+    """Fetch data from URL using httpx2 with optional hishel caching (on by default)."""
     headers = {}
     if TOKEN and ("github.com" in url or "githubusercontent.com" in url):
         headers["Authorization"] = f"token {TOKEN}"
