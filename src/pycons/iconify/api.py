@@ -83,7 +83,7 @@ def _retry_after(headers: Mapping[str, str]) -> int | None:
         return int(value)
     try:
         date = email.utils.parsedate_to_datetime(value)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
     return max(0, int(date.timestamp() - time.time()))
 
@@ -168,7 +168,7 @@ def _package_json[T](package: str, file: str, return_type: type[T]) -> T:
             return _get_json(url, return_type, ttl=DATA_TTL, timeout=CDN_TIMEOUT)
         except IconNotFoundError:
             raise
-        except (IconifyError, anyenv.RequestError):
+        except IconifyError, anyenv.RequestError:
             continue
     url = _resolve_redirects(f"{last}/{package}/{file}")
     return _get_json(url, return_type, ttl=DATA_TTL, timeout=CDN_TIMEOUT)
