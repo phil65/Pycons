@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import email.utils
 import time
 from typing import Any

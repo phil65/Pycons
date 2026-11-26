@@ -1,7 +1,5 @@
 """Exceptions raised by the Iconify wrappers."""
 
-from __future__ import annotations
-
 
 class IconifyError(Exception):
     """Base class for errors when fetching Iconify data."""

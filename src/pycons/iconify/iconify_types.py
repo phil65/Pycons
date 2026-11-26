@@ -4,8 +4,6 @@ Credits to pyconify library.
 https://github.com/pyapp-kit/pyconify/blob/main/src/pyconify/iconify_types.py
 """
 
-from __future__ import annotations  # pragma: no cover
-
 from typing import Literal, NotRequired, Required, TypedDict
 
 

@@ -3,8 +3,6 @@
 Icon utilities (Material Design icons & similar).
 """
 
-from __future__ import annotations
-
 from importlib.metadata import version
 
 __version__ = version("pycons")

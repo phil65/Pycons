@@ -1,7 +1,5 @@
 """Functional API for looking up font icons."""
 
-from __future__ import annotations
-
 import asyncio
 
 # Re-export the Icon class with absolute import

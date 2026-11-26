@@ -1,7 +1,5 @@
 """Ascii icons for different file types."""
 
-from __future__ import annotations
-
 from enum import StrEnum
 from typing import TYPE_CHECKING, Final
 

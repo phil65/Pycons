@@ -16,8 +16,6 @@ CDN roots are tried in order. jsDelivr refuses files above 50 MB (e.g. `fluent-e
 unpkg serves those.
 """
 
-from __future__ import annotations
-
 import contextlib
 import email.utils
 import functools
