@@ -6,7 +6,7 @@
 Material Design, Material Symbols, Codicons, Phosphor, Remix, Elusive) and resolves
 icon names to Unicode characters plus the matching TTF file. It also wraps the
 Iconify API / icon-set packages, builds favicon URLs for domains and maps file paths
-to emoji "ASCII" icons. Python >= 3.13, HTTP via `anyenv`.
+to emoji "ASCII" icons. Python >= 3.14, HTTP via `anyenv`.
 
 ## Architecture
 
@@ -71,7 +71,7 @@ Pre-commit hooks (prek) run ruff, tombi, `ty check` and pytest on commit.
 
 - Google-style docstrings without types in `Args` (see `.github/copilot-instructions.md`).
   Some Iconify functions still use NumPy-style sections.
-- `from __future__ import annotations`; typing-only imports under `TYPE_CHECKING`.
+- No `from __future__ import annotations` (PEP 649; banned via ruff TID251); typing-only imports under `TYPE_CHECKING`.
 - ruff with preview rules, line length 100. ty is the type checker: use targeted
   `# ty: ignore[rule]`, not mypy-style ignores.
 - Tests are plain functions (no classes); async tests run via `asyncio_mode = "auto"`.
